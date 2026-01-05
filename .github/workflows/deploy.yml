@@ -1,100 +1,80 @@
-name: Simple CI/CD Pipeline
+name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔍 Validate files
+        run: |
+          echo "=== Проверка файлов ==="
+          echo "Текущая директория: $(pwd)"
+          echo ""
+          echo "📁 Содержимое проекта:"
+          ls -la
+          echo ""
+          
+          if [ -f "index.html" ]; then
+            echo "✅ index.html найден"
+            echo "Первые 3 строки файла:"
+            head -3 index.html
+          else
+            echo "❌ Ошибка: index.html не найден!"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ Проверка завершена успешно"
+      
+      - name: 📊 Show build info
+        run: |
+          echo "=== Информация о сборке ==="
+          echo "Время сборки: $(date)"
+          echo "Ветка: ${{ github.ref }}"
+          echo "Коммит: ${{ github.sha }}"
+          echo "Автор: ${{ github.actor }}"
+          
+          # Создаем файл с информацией
+          echo "Build Information" > build.txt
+          echo "=================" >> build.txt
+          echo "Time: $(date)" >> build.txt
+          echo "Commit: ${{ github.sha }}" >> build.txt
+          echo "Workflow: ${{ github.workflow }}" >> build.txt
+          
+          echo ""
+          echo "📄 Файл build.txt создан"
+          cat build.txt
+  
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
-      - name: 📥 Checkout repository
+      - name: 📥 Checkout
         uses: actions/checkout@v4
-
-      - name: 🔍 File validation
-        run: |
-          echo "=== FILE VALIDATION ==="
-          echo "Current directory: $(pwd)"
-          echo "Files in repository:"
-          ls -la
-          
-          if [ ! -f "index.html" ]; then
-            echo "Creating index.html file..."
-            cat > index.html << 'HTML_EOF'
-<!DOCTYPE html>
-<html>
-<head>
-    <title>CI/CD Demo</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 10px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🚀 CI/CD Pipeline Working!</h1>
-        <p>This page was deployed by GitHub Actions</p>
-        <p>Build time: <span id="time">Loading...</span></p>
-        <script>
-            document.getElementById('time').textContent = new Date().toLocaleString();
-        </script>
-    </div>
-</body>
-</html>
-HTML_EOF
-            echo "✅ index.html created"
-          else
-            echo "✅ index.html exists"
-          fi
-
-      - name: 📊 Build information
-        run: |
-          echo "=== BUILD INFO ==="
-          echo "Repository: ${{ github.repository }}"
-          echo "Branch: ${{ github.ref }}"
-          echo "Commit: ${{ github.sha }}"
-          
-          cat > build-info.txt << EOF
-Build Information
-=================
-Timestamp: $(date)
-Repository: ${{ github.repository }}
-Branch: ${{ github.ref }}
-Commit: ${{ github.sha }}
-Actor: ${{ github.actor }}
-Run ID: ${{ github.run_id }}
-EOF
-
-      - name: 🚀 Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: JamesIves/github-pages-deploy-action@v4
+      
+      - name: ⚙️ Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: 📦 Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          branch: gh-pages
-          folder: .
-          clean: true
-
-      - name: ✅ Success notification
-        if: success()
-        run: |
-          echo ""
-          echo "🎉 CI/CD PIPELINE SUCCESSFUL!"
-          echo "=============================="
-          echo "Your site will be available at:"
-          echo "👉 https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          path: '.'
+      
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

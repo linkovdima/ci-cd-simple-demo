@@ -1,99 +1,200 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Простой CI/CD Demo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CI/CD с VS Code</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            min-height: 100vh;
         }
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-        }
-        h1 {
+        
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 15px 15px 0 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             text-align: center;
-            margin-bottom: 30px;
         }
-        .status-box {
+        
+        h1 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: #4a5568;
+            font-size: 1.2rem;
+        }
+        
+        main {
             background: white;
-            color: #333;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
+            padding: 2rem;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .success {
-            border-left: 5px solid #4CAF50;
+        
+        .card {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #4299e1;
         }
+        
+        .card.success {
+            border-left-color: #48bb78;
+        }
+        
+        .card.warning {
+            border-left-color: #ed8936;
+        }
+        
         .steps {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px 0;
+            gap: 1rem;
+            margin: 2rem 0;
         }
+        
         .step {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px;
-            border-radius: 5px;
             flex: 1;
             min-width: 150px;
+            background: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
             text-align: center;
+            font-weight: bold;
+        }
+        
+        .step.active {
+            background: #4299e1;
+            color: white;
+        }
+        
+        .build-info {
+            background: #2d3748;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+            font-family: monospace;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #4299e1;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 1rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background: #3182ce;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚀 CI/CD Пайплайн Демо</h1>
+        <header>
+            <h1>🚀 CI/CD Pipeline Demo</h1>
+            <p class="subtitle">Разработано в VS Code → Развернуто через GitHub Actions</p>
+        </header>
         
-        <div class="status-box success">
-            <h3>✅ CI/CD успешно работает!</h3>
-            <p>Это приложение автоматически развернуто через GitHub Actions</p>
-            <p>Время сборки: <span id="buildTime">загрузка...</span></p>
-        </div>
+        <main>
+            <div class="card success">
+                <h2>✅ CI/CD успешно работает!</h2>
+                <p>Этот сайт был автоматически развернут после push в репозиторий GitHub.</p>
+            </div>
+            
+            <h3>Шаги CI/CD пайплайна:</h3>
+            <div class="steps">
+                <div class="step active">1. VS Code</div>
+                <div class="step active">2. Git Commit</div>
+                <div class="step active">3. GitHub Push</div>
+                <div class="step active">4. GitHub Actions</div>
+                <div class="step active">5. Deploy</div>
+            </div>
+            
+            <div class="card">
+                <h3>Информация о сборке:</h3>
+                <p><strong>Последнее обновление:</strong> <span id="timestamp">Загрузка...</span></p>
+                <p><strong>Хэш коммита:</strong> <span id="commit-hash">Загрузка...</span></p>
+                <p><strong>Статус:</strong> <span class="status">Успешно</span></p>
+            </div>
+            
+            <div class="build-info">
+                <div>📦 Сборка завершена успешно</div>
+                <div>🌐 Развернуто на GitHub Pages</div>
+                <div>🔄 Авто-деплой включен</div>
+            </div>
+            
+            <button class="btn" onclick="refreshInfo()">Обновить информацию</button>
+            <button class="btn" onclick="simulateDeploy()">Симулировать деплой</button>
+        </main>
         
-        <h2>Этапы CI/CD пайплайна:</h2>
-        <div class="steps">
-            <div class="step">1. Push кода в GitHub</div>
-            <div class="step">2. Запуск workflow</div>
-            <div class="step">3. Проверка файлов</div>
-            <div class="step">4. Создание артефакта</div>
-            <div class="step">5. Развертывание</div>
-        </div>
-        
-        <div class="status-box">
-            <h3>Как это работает:</h3>
-            <p>При каждом push в репозиторий GitHub автоматически:</p>
-            <ol>
-                <li>Сканирует код на ошибки</li>
-                <li>Создает сборку</li>
-                <li>Развертывает на GitHub Pages</li>
-            </ol>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px;">
-            <button onclick="updateTime()">Обновить время</button>
-            <p style="margin-top: 20px; font-size: 0.9em;">
-                Версия: 1.0.0 | Собрано с ❤️ через CI/CD
-            </p>
-        </div>
+        <footer>
+            <p>Лабораторная работа по CI/CD | Разработано в VS Code | GitHub Actions</p>
+        </footer>
     </div>
     
     <script>
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('buildTime').textContent = 
-                now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+        // Обновляем информацию на странице
+        function updatePageInfo() {
+            document.getElementById('timestamp').textContent = new Date().toLocaleString('ru-RU');
+            document.getElementById('commit-hash').textContent = 'DEMO-' + Math.random().toString(36).substr(2, 8);
         }
         
-        // Установить время при загрузке
-        updateTime();
+        // Имитация деплоя
+        function simulateDeploy() {
+            const status = document.querySelector('.status');
+            status.textContent = 'Деплой в процессе...';
+            status.style.color = '#ed8936';
+            
+            setTimeout(() => {
+                status.textContent = 'Успешно';
+                status.style.color = '#48bb78';
+                updatePageInfo();
+                alert('✅ Деплой успешно завершен!');
+            }, 1500);
+        }
+        
+        // Обновить информацию
+        function refreshInfo() {
+            updatePageInfo();
+            alert('Информация обновлена!');
+        }
+        
+        // Запуск при загрузке
+        document.addEventListener('DOMContentLoaded', updatePageInfo);
     </script>
 </body>
 </html>
