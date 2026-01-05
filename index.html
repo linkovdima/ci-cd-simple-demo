@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Простой CI/CD Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status-box {
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .success {
+            border-left: 5px solid #4CAF50;
+        }
+        .steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .step {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 CI/CD Пайплайн Демо</h1>
+        
+        <div class="status-box success">
+            <h3>✅ CI/CD успешно работает!</h3>
+            <p>Это приложение автоматически развернуто через GitHub Actions</p>
+            <p>Время сборки: <span id="buildTime">загрузка...</span></p>
+        </div>
+        
+        <h2>Этапы CI/CD пайплайна:</h2>
+        <div class="steps">
+            <div class="step">1. Push кода в GitHub</div>
+            <div class="step">2. Запуск workflow</div>
+            <div class="step">3. Проверка файлов</div>
+            <div class="step">4. Создание артефакта</div>
+            <div class="step">5. Развертывание</div>
+        </div>
+        
+        <div class="status-box">
+            <h3>Как это работает:</h3>
+            <p>При каждом push в репозиторий GitHub автоматически:</p>
+            <ol>
+                <li>Сканирует код на ошибки</li>
+                <li>Создает сборку</li>
+                <li>Развертывает на GitHub Pages</li>
+            </ol>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button onclick="updateTime()">Обновить время</button>
+            <p style="margin-top: 20px; font-size: 0.9em;">
+                Версия: 1.0.0 | Собрано с ❤️ через CI/CD
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('buildTime').textContent = 
+                now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+        }
+        
+        // Установить время при загрузке
+        updateTime();
+    </script>
+</body>
+</html>

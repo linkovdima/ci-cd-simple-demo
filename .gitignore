@@ -1,0 +1,12 @@
+# Временные файлы
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
+
+# Файлы IDE
+.vscode/
+.idea/
+
+# Системные файлы
+node_modules/

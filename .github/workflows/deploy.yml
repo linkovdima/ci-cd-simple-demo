@@ -1,0 +1,126 @@
+name: CI/CD Deployment Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Загрузка кода
+      uses: actions/checkout@v3
+      
+    - name: 🔍 Проверка файлов
+      run: |
+        echo "=== ПРОВЕРКА ФАЙЛОВ ==="
+        
+        # Проверяем наличие основных файлов
+        if [ -f "index.html" ]; then
+          echo "✅ index.html найден"
+          
+          # Проверяем базовую структуру HTML
+          if grep -q "<!DOCTYPE html>" index.html; then
+            echo "✅ Корректный DOCTYPE"
+          else
+            echo "❌ Ошибка: Не найден DOCTYPE"
+            exit 1
+          fi
+          
+          if grep -q "<html" index.html && grep -q "</html>" index.html; then
+            echo "✅ Корректная структура HTML"
+          else
+            echo "❌ Ошибка: Неполная структура HTML"
+            exit 1
+          fi
+          
+          # Подсчитываем строки в файле
+          lines=$(wc -l < index.html)
+          echo "📄 index.html содержит $lines строк"
+          
+        else
+          echo "❌ Критическая ошибка: index.html не найден!"
+          exit 1
+        fi
+        
+        if [ -f "README.md" ]; then
+          echo "✅ README.md найден"
+        else
+          echo "⚠️  Предупреждение: README.md не найден"
+        fi
+        
+        echo "=== ПРОВЕРКА ЗАВЕРШЕНА ==="
+        
+    - name: 📝 Создание информации о сборке
+      run: |
+        echo "=== ИНФОРМАЦИЯ О СБОРКЕ ==="
+        echo "Время сборки: $(date)"
+        echo "Автор коммита: ${{ github.actor }}"
+        echo "Сообщение коммита: ${{ github.event.head_commit.message }}"
+        echo "Ветка: ${{ github.ref }}"
+        echo "========================"
+        
+        # Создаем файл с информацией о сборке
+        echo "Информация о сборке" > build-info.txt
+        echo "-------------------" >> build-info.txt
+        echo "Время: $(date)" >> build-info.txt
+        echo "Коммит: ${{ github.sha }}" >> build-info.txt
+        echo "Автор: ${{ github.actor }}" >> build-info.txt
+        echo "Версия: 1.0.0" >> build-info.txt
+        
+    - name: 📦 Создание архива сборки
+      run: |
+        echo "=== СОЗДАНИЕ АРХИВА ==="
+        
+        # Создаем папку для артефактов
+        mkdir -p dist
+        
+        # Копируем файлы
+        cp index.html dist/
+        cp README.md dist/ 2>/dev/null || true
+        cp build-info.txt dist/
+        
+        # Создаем простой файл конфигурации
+        echo "version: 1.0.0" > dist/config.yml
+        echo "build_date: $(date)" >> dist/config.yml
+        echo "deployment_target: github_pages" >> dist/config.yml
+        
+        # Создаем архив
+        cd dist
+        tar -czf ../build-artifact.tar.gz .
+        cd ..
+        
+        echo "✅ Архив создан: build-artifact.tar.gz"
+        ls -lh build-artifact.tar.gz
+        
+    - name: 💾 Сохранение артефакта
+      uses: actions/upload-artifact@v3
+      with:
+        name: website-build
+        path: |
+          build-artifact.tar.gz
+          build-info.txt
+          
+    - name: 🚀 Развертывание на GitHub Pages
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./
+        enable_jekyll: false
+        
+    - name: ✅ Уведомление об успехе
+      if: success()
+      run: |
+        echo "🎉 Пайплайн успешно выполнен!"
+        echo "🌐 Сайт будет доступен по адресу:"
+        echo "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+        
+    - name: ❌ Уведомление об ошибке
+      if: failure()
+      run: |
+        echo "⚠️  Пайплайн завершился с ошибкой!"
+        echo "Проверьте логи выше для диагностики проблемы."
